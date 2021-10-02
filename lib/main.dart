@@ -59,6 +59,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     "spacex (9).jpg",
     "spacex (10).jpg"
   ];
+
+  List<Color> colorList = [
+    COLOR_PURPLE,
+    COLOR_BLUE,
+  ];
+
+  int index = 0;
+  Color bottomColor = COLOR_BLUE;
+  Color topColor = COLOR_PURPLE;
+  Alignment begin = Alignment.bottomLeft;
+  Alignment end = Alignment.topRight;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Future.delayed(Duration(seconds: 3)).then((value) {
+      setState(() {
+        bottomColor = COLOR_PURPLE;
+        topColor = COLOR_BLUE;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var textTheme = Theme.of(context).textTheme;
@@ -66,7 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     var height = MediaQuery.of(context).size.height;
 
     Widget _buildButton(String buttonText, double buttonWidth) {
-      return Container(
+      return AnimatedContainer(
+        duration: Duration(seconds: 2),
         height: 42,
         width: buttonWidth,
         child: Center(
@@ -76,22 +101,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ),
+        onEnd: () {
+          setState(() {
+            index = index + 1;
+            // animate the color
+            bottomColor = colorList[index % colorList.length];
+            topColor = colorList[(index + 1) % colorList.length];
+
+            //// animate the alignment
+            // begin = alignmentList[index % alignmentList.length];
+            // end = alignmentList[(index + 2) % alignmentList.length];
+          });
+        },
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          gradient: LinearGradient(colors: [COLOR_BLUE, COLOR_PURPLE]),
-        ),
+            borderRadius: BorderRadius.circular(5),
+            gradient: LinearGradient(
+                begin: begin, end: end, colors: [bottomColor, topColor])),
       );
     }
 
     Widget _buildGridItem(String image) {
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return ViewPhotoScreen(
+                  imageHero: image,
+                );
+              },
+            ),
+          );
+        },
+        child: Hero(
+          tag: image,
+          child: Container(
+            margin: const EdgeInsets.all(4),
+            height: 65,
+            width: 65,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(11),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage(image),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget _buildHighlightCircle(String imagePath) {
       return Container(
-        margin: const EdgeInsets.all(4),
-        height: 65,
-        width: 65,
+        margin: const EdgeInsets.only(right: 25),
+        height: 85,
+        width: 85,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
-            image:
-                DecorationImage(fit: BoxFit.cover, image: AssetImage(image))),
+          border: Border.all(color: COLOR_BLUE, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: Offset(9, 12),
+            ),
+          ],
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: AssetImage(imagePath),
+          ),
+        ),
       );
     }
 
@@ -305,22 +386,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            // Container(
-            //   width: width,
-            //   height: 85,
-            //   child: ListView(
-            //     // This next line does the trick.
-            //     scrollDirection: Axis.horizontal,
-
-            //     children: <Widget>[
-            //       CircleAvatar(),
-
-            //     ],
-            //   ),
-            // ),
+            Container(
+              width: width,
+              height: 150,
+              margin: const EdgeInsets.only(top: 25, bottom: 25),
+              child: ListView(
+                physics: BouncingScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                children: <Widget>[
+                  SizedBox(
+                    width: 15,
+                  ),
+                  _buildHighlightCircle("assets/spacex (1).jpg"),
+                  _buildHighlightCircle("assets/spacex (2).jpg"),
+                  _buildHighlightCircle("assets/spacex (3).jpg"),
+                  _buildHighlightCircle("assets/spacex (4).jpg"),
+                  _buildHighlightCircle("assets/spacex (5).jpg"),
+                  _buildHighlightCircle("assets/spacex (6).jpg"),
+                  _buildHighlightCircle("assets/spacex (7).jpg"),
+                ],
+              ),
+            ),
             GridView.builder(
               physics: NeverScrollableScrollPhysics(),
               shrinkWrap: true,
+              padding: EdgeInsets.only(left: 10, right: 10),
               itemCount: images.length,
               gridDelegate:
                   SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
@@ -330,6 +420,278 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ViewPhotoScreen extends StatelessWidget {
+  final String imageHero;
+  const ViewPhotoScreen({Key? key, required this.imageHero}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var textTheme = Theme.of(context).textTheme;
+    var width = MediaQuery.of(context).size.width;
+    var height = MediaQuery.of(context).size.height;
+    return Scaffold(
+      backgroundColor: COLOR_BACKGROUND_WHITE,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        centerTitle: true,
+        shadowColor: Colors.transparent,
+        title: CircleAvatar(
+          radius: 21,
+          backgroundColor: Colors.white,
+          child: CircleAvatar(
+            backgroundImage: AssetImage("assets/spacex.jpg"),
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Icon(
+              Icons.more_horiz_rounded,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Container(
+          width: width,
+          height: height,
+          color: Colors.black87,
+          child: Column(
+            children: [
+              Container(
+                width: width,
+                margin: EdgeInsets.zero,
+                padding: EdgeInsets.zero,
+                decoration: BoxDecoration(
+                  color: COLOR_BACKGROUND_WHITE,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(25),
+                    bottomRight: Radius.circular(25),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 90,
+                    ),
+                    Hero(
+                      tag: imageHero,
+                      child: Container(
+                        margin: const EdgeInsets.all(4),
+                        height: 350,
+                        width: width * 0.9,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(11),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.4),
+                              spreadRadius: 2,
+                              blurRadius: 15,
+                              offset: Offset(9, 12),
+                            ),
+                          ],
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            image: AssetImage(imageHero),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 25,
+                        ),
+                        Container(
+                          height: 25,
+                          width: 85,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.favorite_outline,
+                                color: Colors.black,
+                              ),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              Text(
+                                "2,255",
+                                style: textTheme.bodyText1!.copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 25,
+                          width: 85,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.comment_outlined,
+                                color: Colors.black,
+                              ),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              Text(
+                                "129",
+                                style: textTheme.bodyText1!.copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Spacer(),
+                        Icon(
+                          Icons.bookmark_add_outlined,
+                          color: Colors.black,
+                        ),
+                        SizedBox(
+                          width: 25,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                ),
+              ),
+              Spacer(),
+              _buildComment(
+                width: width,
+                textTheme: textTheme,
+                comment: "Love this picture!",
+                commentAuthor: "Elon Musk",
+                profilePic: "assets/spacex.jpg",
+              ),
+              _buildComment(
+                width: width,
+                textTheme: textTheme,
+                comment: "Wow...",
+                commentAuthor: "Jeff Spaceos",
+                profilePic: "assets/amazonlogo.png",
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, left: 8, right: 8),
+                child: TextField(
+                  decoration: InputDecoration(
+                    fillColor: COLOR_BACKGROUND_WHITE,
+                    filled: true,
+                    hintStyle:
+                        textTheme.bodyText1!.copyWith(color: Colors.black45),
+                    hintText: "Add a comment...",
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CircleAvatar(
+                        radius: 5,
+                        backgroundImage: AssetImage("assets/spacex.jpg"),
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _buildComment extends StatelessWidget {
+  const _buildComment({
+    Key? key,
+    required this.width,
+    required this.textTheme,
+    required this.comment,
+    required this.commentAuthor,
+    required this.profilePic,
+  }) : super(key: key);
+
+  final double width;
+  final TextTheme textTheme;
+  final String comment;
+  final String commentAuthor;
+  final String profilePic;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(8),
+      width: width,
+      height: 65,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.white,
+            radius: 22,
+            child: CircleAvatar(
+              radius: 20,
+              backgroundImage: AssetImage(profilePic),
+            ),
+          ),
+          SizedBox(
+            width: 15,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                commentAuthor,
+                style: textTheme.bodyText1!.copyWith(
+                    color: Colors.white30,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 14),
+              ),
+              Text(
+                comment,
+                style: textTheme.bodyText1!.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 14),
+              ),
+            ],
+          ),
+          Spacer(),
+          Icon(
+            Icons.favorite_outline,
+            color: Colors.white38,
+            size: 20,
+          )
+        ],
       ),
     );
   }
